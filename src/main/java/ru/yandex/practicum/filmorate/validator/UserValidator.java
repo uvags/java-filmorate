@@ -7,7 +7,7 @@ public class UserValidator {
     public ValidationResult validate(User user) {
         if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
             return ValidationResult.error(
-                    "email не может быть пустой и должна содержать символ @");
+                    "email не может быть пустым и должен содержать символ @");
         }
         if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
             return ValidationResult.error("Логин не может быть пустым и содержать пробелы");
