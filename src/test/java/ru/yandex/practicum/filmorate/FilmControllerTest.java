@@ -20,7 +20,7 @@ class FilmControllerTest {
         validFilm = new Film();
         validFilm.setName("Шрек");
         validFilm.setDescription("Мультфильм про великана");
-        validFilm.setReleaseDate(LocalDate.of(2014, 4, 22));
+        validFilm.setReleaseDate(LocalDate.of(2001, 4, 22));
         validFilm.setDuration(90);
     }
 
