@@ -34,8 +34,21 @@ class FilmControllerTest {
 
     @Test
     void shouldAssignIncrementingIds() {
-        Film first = controller.addFilm(validFilm);
-        Film second = controller.addFilm(validFilm);
+        Film firstFilm = new Film();
+        firstFilm.setName("Интерстеллар");
+        firstFilm.setDescription("Фантастика о космосе");
+        firstFilm.setReleaseDate(LocalDate.of(2014, 11, 7));
+        firstFilm.setDuration(169);
+
+        Film secondFilm = new Film();
+        secondFilm.setName("Начало");
+        secondFilm.setDescription("Про сны");
+        secondFilm.setReleaseDate(LocalDate.of(2010, 7, 16));
+        secondFilm.setDuration(148);
+
+        Film first = controller.addFilm(firstFilm);
+        Film second = controller.addFilm(secondFilm);
+
         assertEquals(1L, first.getId());
         assertEquals(2L, second.getId());
     }
