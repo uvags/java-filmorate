@@ -40,4 +40,22 @@ public class FilmController {
         log.info("PUT /films, id={}", film.getId());
         return filmService.update(film);
     }
+
+    // пользователь ставит лайк фильму
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.addLike(id, userId);
+    }
+
+    // пользователь удаляет лайк у фильма
+    @DeleteMapping("/{id}/like/{userId}")
+    public void removeLike(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.removeLike(id, userId);
+    }
+
+    // возвращает список из первых count фильмов по количеству лайков, иначе первые 10
+    @GetMapping("/popular")
+    public List<Film> getPopular(@RequestParam(defaultValue = "10") int count) {
+        return filmService.getPopular(count);
+    }
 }
