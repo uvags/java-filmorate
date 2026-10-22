@@ -16,6 +16,21 @@ public class InMemoryUserStorage implements UserStorage {
     private Long nextId = 0L;
 
     @Override
+    public User getById(Long id) {
+        User user = users.get(id);
+        if (user == null) {
+            log.warn("User не найден: id={}", id);
+            throw new NotFoundException("User с id=" + id + " не найден");
+        }
+        return user;
+    }
+
+    @Override
+    public List<User> findAll() {
+        return new ArrayList<>(users.values());
+    }
+
+    @Override
     public User add(User user) {
         user.setId(++nextId);
         users.put(user.getId(), user);
@@ -40,20 +55,5 @@ public class InMemoryUserStorage implements UserStorage {
         if (removed != null) {
             log.info("Удалены данные User: id={}, login=\"{}\"", id, removed.getLogin());
         }
-    }
-
-    @Override
-    public User getById(Long id) {
-        User user = users.get(id);
-        if (user == null) {
-            log.warn("User не найден: id={}", id);
-            throw new NotFoundException("User с id=" + id + " не найден");
-        }
-        return user;
-    }
-
-    @Override
-    public List<User> findAll() {
-        return new ArrayList<>(users.values());
     }
 }
