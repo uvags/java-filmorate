@@ -9,8 +9,6 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.validator.ValidationResult;
 import ru.yandex.practicum.filmorate.validator.Validator;
-
-import java.util.Comparator;
 import java.util.List;
 
 @Slf4j

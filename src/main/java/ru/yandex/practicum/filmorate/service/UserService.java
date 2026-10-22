@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.validator.ValidationResult;
 import ru.yandex.practicum.filmorate.validator.Validator;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 
 @Slf4j
 @Service
