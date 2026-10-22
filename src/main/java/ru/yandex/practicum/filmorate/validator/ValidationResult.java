@@ -1,9 +1,13 @@
 package ru.yandex.practicum.filmorate.validator;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
-public class ValidationResult {
+@EqualsAndHashCode
+@ToString
+public final class ValidationResult {
     private final boolean valid;
     private final String message;
 
@@ -12,11 +16,6 @@ public class ValidationResult {
         this.message = message;
     }
 
-    public static ValidationResult ok() {
-        return new ValidationResult(true, null);
-    }
-
-    public static ValidationResult error(String message) {
-        return new ValidationResult(false, message);
-    }
+    public static ValidationResult ok() { return new ValidationResult(true, null); }
+    public static ValidationResult error(String m) { return new ValidationResult(false, m); }
 }
