@@ -16,6 +16,11 @@ public final class ValidationResult {
         this.message = message;
     }
 
-    public static ValidationResult ok() { return new ValidationResult(true, null); }
-    public static ValidationResult error(String m) { return new ValidationResult(false, m); }
+    public static ValidationResult ok() {
+        return new ValidationResult(true, null);
+    }
+
+    public static ValidationResult error(String m) {
+        return new ValidationResult(false, m);
+    }
 }
