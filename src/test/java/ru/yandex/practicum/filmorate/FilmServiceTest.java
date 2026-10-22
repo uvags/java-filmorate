@@ -46,8 +46,8 @@ class FilmServiceTest {
     @Test
     void createShouldAssignId() {
         Film saved = service.create(film("A"));
-        assertNotNull(saved.getId());
 
+        assertNotNull(saved.getId());
         assertEquals(saved, service.getById(saved.getId()));
     }
 
