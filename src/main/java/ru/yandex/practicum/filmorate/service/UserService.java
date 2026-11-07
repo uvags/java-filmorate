@@ -45,17 +45,14 @@ public class UserService {
         return userStorage.update(user);
     }
 
-    // добавление друга без подтверждений
     public void addFriend(Long userId, Long friendId) {
         if (userId.equals(friendId)) {
             log.warn("Попытка добавить самого себя в друзья: userId={}", userId);
             throw new ValidationException("Запрещено добавлять самого себя в друзья");
         }
         User user = userStorage.getById(userId);
-        User friend = userStorage.getById(friendId);
 
         user.getFriends().add(friendId);
-        friend.getFriends().add(userId);
         log.info("User userId={} добавил User friendId={} в друзья", userId, friendId);
     }
 
