@@ -48,6 +48,7 @@ public class FilmService {
 
     public Film create(Film film) {
         validate(film);
+        film.setLikes(new HashSet<>()); // заглушка, чтобы переданный likes игнорировался
         Map<Long, Genre> genres = genreService.findAllMap();
         Map<Long, MpaRating> mpa = mpaRatingService.findAllMap();
         checkMpaAndGenresExist(film, genres, mpa);
