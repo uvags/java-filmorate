@@ -64,7 +64,9 @@ public class FilmService {
 
         Film existing = filmStorage.getById(film.getId());
         film.setLikes(existing.getLikes());
-        if (film.getGenres() == null) film.setGenres(existing.getGenres());
+        if (film.getGenres() == null || film.getGenres().isEmpty()) {
+            film.setGenres(existing.getGenres());
+        }
 
         Film updated = fillMpa(filmStorage.update(film), genres, mpa);
         log.info("Обновлён Film: id={}, name=\"{}\"", updated.getId(), updated.getName());
