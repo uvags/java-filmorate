@@ -62,11 +62,10 @@ public class FilmService {
         Map<Long, Genre> genres = genreService.findAllMap();
         Map<Long, MpaRating> mpa = mpaRatingService.findAllMap();
         checkMpaAndGenresExist(film, genres, mpa);
-
         Film existing = filmStorage.getById(film.getId());
-        film.setLikes(existing.getLikes());
+        film.setLikes(new HashSet<>(existing.getLikes()));
         if (film.getGenres() == null || film.getGenres().isEmpty()) {
-            film.setGenres(existing.getGenres());
+            film.setGenres(new ArrayList<>(existing.getGenres()));
         }
 
         Film updated = fillMpa(filmStorage.update(film), genres, mpa);
