@@ -158,4 +158,43 @@ class UserDbStorageTest {
         assertThatThrownBy(() -> userStorage.delete(999L))
                 .isInstanceOf(NotFoundException.class);
     }
+
+    @Test
+    void shouldUpdateUser() {
+        User saved = userStorage.add(newUser("a"));
+        saved.setEmail("new@test.ru");
+        saved.setLogin("newlogin");
+        saved.setName("Новое имя");
+        saved.setBirthday(LocalDate.of(1995, 5, 5));
+        userStorage.update(saved);
+        User found = userStorage.getById(saved.getId());
+
+        assertThat(found.getEmail()).isEqualTo("new@test.ru");
+        assertThat(found.getLogin()).isEqualTo("newlogin");
+        assertThat(found.getName()).isEqualTo("Новое имя");
+        assertThat(found.getBirthday()).isEqualTo(LocalDate.of(1995, 5, 5));
+    }
+
+    @Test
+    void shouldUpdateUserPreserveFriendships() {
+        User a = userStorage.add(newUser("a"));
+        User b = userStorage.add(newUser("b"));
+        userStorage.addFriend(a.getId(), b.getId(), FriendshipStatus.PENDING);
+        a.setName("Обновлён");
+        userStorage.update(a);
+
+        assertThat(userStorage.findFriendshipStatus(a.getId(), b.getId()))
+                .hasValue(FriendshipStatus.PENDING);
+        assertThat(userStorage.findFriends(a.getId()))
+                .extracting(User::getId).containsExactly(b.getId());
+    }
+
+    @Test
+    void shouldThrowWhenUpdateNotFound() {
+        User ghost = newUser("ghost");
+        ghost.setId(999L);
+
+        assertThatThrownBy(() -> userStorage.update(ghost))
+                .isInstanceOf(NotFoundException.class);
+    }
 }
