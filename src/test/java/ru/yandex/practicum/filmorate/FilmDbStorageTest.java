@@ -35,9 +35,11 @@ class FilmDbStorageTest {
     @Test
     void shouldAddAndFindFilm() {
         Film saved = filmStorage.add(newFilm());
+
         assertThat(saved.getId()).isNotNull();
 
         Film found = filmStorage.getById(saved.getId());
+
         assertThat(found.getName()).isEqualTo("Шрек");
         assertThat(found.getMpa().getId()).isEqualTo(1L);
         assertThat(found.getMpa().getName()).isEqualTo("G");
@@ -48,10 +50,12 @@ class FilmDbStorageTest {
         Film f = newFilm();
         f.setGenres(List.of(new Genre(1L, null), new Genre(2L, null)));
         Film saved = filmStorage.add(f);
-
         Film found = filmStorage.getById(saved.getId());
+
         assertThat(found.getGenres()).hasSize(2);
-        assertThat(found.getGenres()).extracting(Genre::getName)
+        assertThat(found
+                .getGenres())
+                .extracting(Genre::getName)
                 .containsExactly("Комедия", "Драма");
     }
 
@@ -60,6 +64,7 @@ class FilmDbStorageTest {
         Film saved = filmStorage.add(newFilm());
         saved.setName("Новое имя");
         filmStorage.update(saved);
+
         assertThat(filmStorage.getById(saved.getId()).getName()).isEqualTo("Новое имя");
     }
 
@@ -85,6 +90,62 @@ class FilmDbStorageTest {
     @Test
     void shouldThrowWhenNotFound() {
         assertThatThrownBy(() -> filmStorage.getById(999L))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void shouldDeleteFilm() {
+        Film saved = filmStorage.add(newFilm());
+
+        filmStorage.delete(saved.getId());
+
+        assertThatThrownBy(() -> filmStorage.getById(saved.getId()))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void shouldDeleteFilmCascadeGenres() {
+        Film f = newFilm();
+        f.setGenres(List.of(new Genre(1L, null), new Genre(2L, null)));
+        Film saved = filmStorage.add(f);
+        filmStorage.delete(saved.getId());
+        Integer remaining = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM film_genres WHERE film_id = ?",
+                Integer.class, saved.getId());
+
+        assertThat(remaining).isZero();
+    }
+
+    @Test
+    void shouldDeleteFilmCascadeLikes() {
+        jdbc.update("INSERT INTO users (email, login, name, birthday) " +
+                "VALUES ('a@a.ru','a','A','2000-01-01')");
+        long userId = jdbc.queryForObject("SELECT id FROM users WHERE login='a'", Long.class);
+        Film saved = filmStorage.add(newFilm());
+        filmStorage.addLike(saved.getId(), userId);
+        filmStorage.delete(saved.getId());
+        Integer remaining = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM likes WHERE film_id = ?",
+                Integer.class, saved.getId());
+
+        assertThat(remaining).isZero();
+    }
+
+    @Test
+    void shouldNotAffectOtherFilmsOnDelete() {
+        Film toDelete = filmStorage.add(newFilm());
+        Film toKeep = filmStorage.add(newFilm());
+        filmStorage.delete(toDelete.getId());
+
+        assertThat(filmStorage
+                .findAll())
+                .extracting(Film::getId)
+                .containsExactly(toKeep.getId());
+    }
+
+    @Test
+    void shouldThrowWhenDeleteNotFound() {
+        assertThatThrownBy(() -> filmStorage.delete(999L))
                 .isInstanceOf(NotFoundException.class);
     }
 }

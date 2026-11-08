@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
@@ -18,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 @Import(UserDbStorage.class)
 class UserDbStorageTest {
     @Autowired private UserDbStorage userStorage;
+    @Autowired private JdbcTemplate jdbc;
 
     private User newUser(String login) {
         User u = new User();
@@ -77,6 +79,83 @@ class UserDbStorageTest {
     @Test
     void shouldThrowWhenNotFound() {
         assertThatThrownBy(() -> userStorage.getById(999L))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void shouldDeleteUser() {
+        User saved = userStorage.add(newUser("a"));
+
+        userStorage.delete(saved.getId());
+
+        assertThatThrownBy(() -> userStorage.getById(saved.getId()))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void shouldDeleteUserCascadeOwnFriendships() {
+        User a = userStorage.add(newUser("a"));
+        User b = userStorage.add(newUser("b"));
+        userStorage.addFriend(a.getId(), b.getId(), FriendshipStatus.PENDING);
+
+        userStorage.delete(a.getId());
+
+        Integer remaining = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM friendships WHERE user_id = ?",
+                Integer.class, a.getId());
+        assertThat(remaining).isZero();
+    }
+
+    @Test
+    void shouldDeleteUserCascadeIncomingFriendships() {
+        User a = userStorage.add(newUser("a"));
+        User b = userStorage.add(newUser("b"));
+        userStorage.addFriend(b.getId(), a.getId(), FriendshipStatus.PENDING);
+
+        userStorage.delete(a.getId());
+
+        Integer remaining = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM friendships WHERE friend_id = ?",
+                Integer.class, a.getId());
+
+        assertThat(remaining).isZero();
+        assertThat(userStorage.findFriends(b.getId())).isEmpty();
+    }
+
+    @Test
+    void shouldDeleteUserCascadeLikes() {
+        User user = userStorage.add(newUser("a"));
+
+        jdbc.update("INSERT INTO films (name, description, release_date, duration) " +
+                "VALUES ('X', 'd', '2000-01-01', 90)");
+        long filmId = jdbc.queryForObject("SELECT id FROM films WHERE name='X'", Long.class);
+        jdbc.update("INSERT INTO likes (film_id, user_id) VALUES (?, ?)", filmId, user.getId());
+
+        userStorage.delete(user.getId());
+
+        Integer remaining = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM likes WHERE user_id = ?",
+                Integer.class, user.getId());
+
+        assertThat(remaining).isZero();
+    }
+
+    @Test
+    void shouldNotAffectOtherUsersOnDelete() {
+        User toDelete = userStorage.add(newUser("a"));
+        User keepUser = userStorage.add(newUser("b"));
+
+        userStorage.delete(toDelete.getId());
+
+        assertThat(userStorage
+                .findAll())
+                .extracting(User::getId)
+                .containsExactly(keepUser.getId());
+    }
+
+    @Test
+    void shouldThrowWhenDeleteNotFound() {
+        assertThatThrownBy(() -> userStorage.delete(999L))
                 .isInstanceOf(NotFoundException.class);
     }
 }
