@@ -58,25 +58,19 @@ class UserControllerTest {
     @Test
     void shouldUseLoginWhenNameIsBlank() {
         validUser.setName(" ");
-        User saved = controller.create(validUser);
-
-        assertEquals("userlogin", saved.getName());
+        assertEquals("userlogin", controller.create(validUser).getName());
     }
 
     @Test
     void shouldUseLoginWhenNameIsNull() {
         validUser.setName(null);
-        User saved = controller.create(validUser);
-
-        assertEquals("userlogin", saved.getName());
+        assertEquals("userlogin", controller.create(validUser).getName());
     }
 
     @Test
     void shouldKeepNameWhenProvided() {
         validUser.setName("Пётр");
-        User saved = controller.create(validUser);
-
-        assertEquals("Пётр", saved.getName());
+        assertEquals("Пётр", controller.create(validUser).getName());
     }
 
     @Test
@@ -88,64 +82,54 @@ class UserControllerTest {
     void shouldReturnAllUsers() {
         controller.create(validUser);
         controller.create(validUser);
-        List<User> users = controller.findAll();
-
-        assertEquals(2, users.size());
+        assertEquals(2, controller.findAll().size());
     }
 
     @Test
     void shouldRejectEmailWithoutAt() {
         validUser.setEmail("invalid-email");
-
         assertThrows(ValidationException.class, () -> controller.create(validUser));
     }
 
     @Test
     void shouldRejectEmptyEmail() {
         validUser.setEmail("");
-
         assertThrows(ValidationException.class, () -> controller.create(validUser));
     }
 
     @Test
     void shouldRejectLoginWithSpaces() {
         validUser.setLogin("user login");
-
         assertThrows(ValidationException.class, () -> controller.create(validUser));
     }
 
     @Test
     void shouldRejectEmptyLogin() {
         validUser.setLogin("");
-
         assertThrows(ValidationException.class, () -> controller.create(validUser));
     }
 
     @Test
     void shouldRejectBirthdayInFuture() {
         validUser.setBirthday(LocalDate.now().plusDays(1));
-
         assertThrows(ValidationException.class, () -> controller.create(validUser));
     }
 
     @Test
     void shouldAcceptBirthdayToday() {
         validUser.setBirthday(LocalDate.now());
-
         assertDoesNotThrow(() -> controller.create(validUser));
     }
 
     @Test
     void shouldAcceptNullBirthday() {
         validUser.setBirthday(null);
-
         assertDoesNotThrow(() -> controller.create(validUser));
     }
 
     @Test
     void shouldNotSaveInvalidUser() {
         validUser.setEmail("bad");
-
         assertThrows(ValidationException.class, () -> controller.create(validUser));
         assertTrue(controller.findAll().isEmpty());
     }
@@ -155,7 +139,6 @@ class UserControllerTest {
         User saved = controller.create(validUser);
         saved.setName("Пётр");
         User updated = controller.update(saved);
-
         assertEquals("Пётр", updated.getName());
         assertEquals(1, controller.findAll().size());
     }
@@ -163,14 +146,12 @@ class UserControllerTest {
     @Test
     void shouldRejectUpdateForUnknownUser() {
         validUser.setId(999L);
-
         assertThrows(NotFoundException.class, () -> controller.update(validUser));
     }
 
     @Test
     void shouldRejectUpdateWithoutId() {
         validUser.setId(null);
-
         assertThrows(NotFoundException.class, () -> controller.update(validUser));
     }
 
@@ -178,14 +159,12 @@ class UserControllerTest {
     void shouldRejectUpdateWithInvalidData() {
         User saved = controller.create(validUser);
         saved.setEmail("bad");
-
         assertThrows(ValidationException.class, () -> controller.update(saved));
     }
 
     @Test
     void shouldReturnUserById() {
         User saved = controller.create(validUser);
-
         assertEquals(saved, controller.getById(saved.getId()));
     }
 
@@ -200,7 +179,6 @@ class UserControllerTest {
         u.setLogin(login);
         u.setName(login);
         u.setBirthday(LocalDate.of(1990, 1, 1));
-
         return u;
     }
 
@@ -208,38 +186,34 @@ class UserControllerTest {
     void shouldAddFriend() {
         User a = controller.create(makeUser("a"));
         User b = controller.create(makeUser("b"));
-
         controller.addFriend(a.getId(), b.getId());
 
         List<User> friends = controller.getFriends(a.getId());
-
         assertEquals(1, friends.size());
         assertEquals(b.getId(), friends.getFirst().getId());
     }
 
     @Test
-    void shouldBecomeFriendsSymmetrically() {
+    void shouldAddFriendOneWay() {
         User a = controller.create(makeUser("a"));
         User b = controller.create(makeUser("b"));
         controller.addFriend(a.getId(), b.getId());
 
-        List<User> bFriendList = controller.getFriends(b.getId());
-
-        assertEquals(1, bFriendList.size());
-        assertEquals(a.getId(), bFriendList.getFirst().getId());
+        // у a есть b
+        assertEquals(1, controller.getFriends(a.getId()).size());
+        // у b НЕТ a (односторонняя дружба)
+        assertTrue(controller.getFriends(b.getId()).isEmpty());
     }
 
     @Test
     void shouldRejectMyselfAsFriend() {
         User a = controller.create(makeUser("a"));
-
         assertThrows(ValidationException.class, () -> controller.addFriend(a.getId(), a.getId()));
     }
 
     @Test
     void shouldThrowNotFoundExceptionWhenAddFriendUnknownUser() {
         User a = controller.create(makeUser("a"));
-
         assertThrows(NotFoundException.class, () -> controller.addFriend(a.getId(), 999L));
     }
 
@@ -265,7 +239,6 @@ class UserControllerTest {
         controller.addFriend(b.getId(), c.getId());
 
         List<User> common = controller.getCommonFriends(a.getId(), b.getId());
-
         assertEquals(1, common.size());
         assertEquals(c.getId(), common.getFirst().getId());
     }
@@ -274,7 +247,6 @@ class UserControllerTest {
     void shouldReturnEmptyCommonFriendsWhenNone() {
         User a = controller.create(makeUser("a"));
         User b = controller.create(makeUser("b"));
-
         assertTrue(controller.getCommonFriends(a.getId(), b.getId()).isEmpty());
     }
 }
