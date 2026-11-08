@@ -70,8 +70,11 @@ public class FilmDbStorage implements FilmStorage {
             ps.setString(2, film.getDescription());
             ps.setDate(3, Date.valueOf(film.getReleaseDate()));
             ps.setInt(4, film.getDuration());
-            if (film.getMpa() != null) ps.setLong(5, film.getMpa().getId());
-            else ps.setNull(5, Types.BIGINT);
+            if (film.getMpa() != null && film.getMpa().getId() != null) {
+                ps.setLong(5, film.getMpa().getId());
+            } else {
+                ps.setNull(5, Types.BIGINT);
+            }
             return ps;
         }, kh);
         film.setId(kh.getKey().longValue());
