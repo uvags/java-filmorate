@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.validator.Validator;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -61,6 +62,12 @@ public class UserService {
         }
         userStorage.getById(userId);
         userStorage.getById(friendId);
+
+        Optional<FriendshipStatus> existing = userStorage.findFriendshipStatus(userId, friendId);
+        if (existing.isPresent() && existing.get() == FriendshipStatus.CONFIRMED) {
+            log.info("Дружба уже CONFIRMED: userId={}, friendId={}", userId, friendId);
+            return new Friendship(userId, friendId, FriendshipStatus.CONFIRMED);
+        }
 
         boolean incomingFriendRequest = userStorage.findFriendshipStatus(friendId, userId).isPresent();
         FriendshipStatus status = incomingFriendRequest ? FriendshipStatus.CONFIRMED : FriendshipStatus.PENDING;
