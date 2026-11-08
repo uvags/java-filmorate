@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -16,6 +17,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @JdbcTest
 @AutoConfigureTestDatabase
+@Import(FilmDbStorage.class)
 class FilmDbStorageTest {
     @Autowired private FilmDbStorage filmStorage;
     @Autowired private JdbcTemplate jdbc;
