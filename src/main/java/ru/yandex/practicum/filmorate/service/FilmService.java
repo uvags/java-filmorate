@@ -91,8 +91,8 @@ public class FilmService {
         }
         Map<Long, Genre> genres = genreService.findAllMap();
         Map<Long, MpaRating> mpa = mpaRatingService.findAllMap();
-        return filmStorage.
-                findPopular(count).stream()
+        return filmStorage
+                .findPopular(count).stream()
                 .map(f -> fillMpa(f, genres, mpa))
                 .toList();
     }

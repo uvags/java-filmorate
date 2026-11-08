@@ -62,11 +62,11 @@ public class UserService {
         userStorage.getById(userId);
         userStorage.getById(friendId);
 
-        boolean incoming_friend_request = userStorage.findFriendshipStatus(friendId, userId).isPresent();
-        FriendshipStatus status = incoming_friend_request ? FriendshipStatus.CONFIRMED : FriendshipStatus.PENDING;
+        boolean incomingFriendRequest = userStorage.findFriendshipStatus(friendId, userId).isPresent();
+        FriendshipStatus status = incomingFriendRequest ? FriendshipStatus.CONFIRMED : FriendshipStatus.PENDING;
         userStorage.addFriend(userId, friendId, status);
 
-        if (incoming_friend_request) {
+        if (incomingFriendRequest) {
             userStorage.addFriend(friendId, userId, FriendshipStatus.CONFIRMED);
             log.info("Встречная заявка — дружба CONFIRMED: userId={}, friendId={}", userId, friendId);
         } else {

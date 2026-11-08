@@ -9,5 +9,6 @@ public class MpaRating {
     private Long id;
     private String name;
 
-    public MpaRating() {}
+    public MpaRating() {
+    }
 }
