@@ -97,6 +97,12 @@ public class FilmService {
                 .toList();
     }
 
+    public void delete(Long id) {
+        filmStorage.getById(id);
+        filmStorage.delete(id);
+        log.info("Удалён Film: id={}", id);
+    }
+
     private void validate(Film film) {
         ValidationResult result = Validator.validate(film);
         if (!result.isValid()) {

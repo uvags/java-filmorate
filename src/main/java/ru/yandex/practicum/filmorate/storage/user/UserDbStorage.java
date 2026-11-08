@@ -84,8 +84,14 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
-        jdbc.update("DELETE FROM users WHERE id = ?", id);
+        jdbc.update("DELETE FROM likes       WHERE user_id = ?", id);
+        jdbc.update("DELETE FROM friendships WHERE user_id = ? OR friend_id = ?", id, id);
+        int rows = jdbc.update("DELETE FROM users WHERE id = ?", id);
+        if (rows == 0) {
+            throw new NotFoundException("Пользователь с id=" + id + " не найден");
+        }
         log.info("Удалён User: id={}", id);
     }
 

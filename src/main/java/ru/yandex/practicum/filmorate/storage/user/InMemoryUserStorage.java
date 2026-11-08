@@ -52,6 +52,8 @@ public class InMemoryUserStorage implements UserStorage {
     public void delete(Long id) {
         User removed = users.remove(id);
         friendships.remove(id);
+        friendships.values().forEach(m -> m.remove(id));
+        users.values().forEach(u -> u.getFriends().remove(id));
         if (removed != null) {
             log.info("Удалены данные User: id={}, login=\"{}\"", id, removed.getLogin());
         }

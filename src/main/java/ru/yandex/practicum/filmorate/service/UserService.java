@@ -103,6 +103,12 @@ public class UserService {
         return common;
     }
 
+    public void delete(Long id) {
+        userStorage.getById(id);
+        userStorage.delete(id);
+        log.info("Удалён User: id={}", id);
+    }
+
     private void validate(User user) {
         ValidationResult result = Validator.validate(user);
         if (!result.isValid()) {

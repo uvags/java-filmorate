@@ -103,8 +103,14 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
-        jdbc.update("DELETE FROM films WHERE id = ?", id);
+        jdbc.update("DELETE FROM film_genres WHERE film_id = ?", id);
+        jdbc.update("DELETE FROM likes WHERE film_id = ?", id);
+        int rows = jdbc.update("DELETE FROM films WHERE id = ?", id);
+        if (rows == 0) {
+            throw new NotFoundException("Фильм с id=" + id + " не найден");
+        }
         log.info("Удалён Film: id={}", id);
     }
 

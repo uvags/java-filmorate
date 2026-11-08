@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
@@ -39,6 +40,13 @@ public class UserController {
     public User update(@RequestBody User user) {
         log.info("PUT /users, id={}", user.getId());
         return userService.update(user);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        log.info("DELETE /users/{}", id);
+        userService.delete(id);
     }
 
     @GetMapping("/{id}/friends")
