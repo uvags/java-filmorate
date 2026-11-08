@@ -13,4 +13,10 @@ public interface FilmStorage {
     Film update(Film film);
 
     void delete(Long id);
+
+    List<Film> findPopular(int limit);
+
+    void addLike(Long filmId, Long userId);
+
+    void removeLike(Long filmId, Long userId);
 }

@@ -11,7 +11,11 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.GenreService;
+import ru.yandex.practicum.filmorate.service.MpaRatingService;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.genre.InMemoryGenreDao;
+import ru.yandex.practicum.filmorate.storage.mpa.InMemoryMpaRatingDao;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 class FilmControllerTest {
@@ -22,7 +26,11 @@ class FilmControllerTest {
     @BeforeEach
     void setUp() {
         userStorage = new InMemoryUserStorage();
-        controller = new FilmController(new FilmService(new InMemoryFilmStorage(), userStorage));
+        GenreService genreService = new GenreService(new InMemoryGenreDao());
+        MpaRatingService mpaService = new MpaRatingService(new InMemoryMpaRatingDao());
+
+        controller = new FilmController(new FilmService(new InMemoryFilmStorage(), userStorage,
+                genreService, mpaService));
         validFilm = new Film();
         validFilm.setName("Шрек");
         validFilm.setDescription("Мультфильм про великана");
@@ -34,7 +42,6 @@ class FilmControllerTest {
     void shouldAddValidFilm() {
         Film saved = controller.create(validFilm);
         assertNotNull(saved.getId());
-
         assertEquals(1L, saved.getId());
         assertEquals("Шрек", saved.getName());
     }
@@ -46,11 +53,13 @@ class FilmControllerTest {
         firstFilm.setDescription("Фантастика о космосе");
         firstFilm.setReleaseDate(LocalDate.of(2014, 11, 7));
         firstFilm.setDuration(169);
+
         Film secondFilm = new Film();
         secondFilm.setName("Начало");
         secondFilm.setDescription("Про сны");
         secondFilm.setReleaseDate(LocalDate.of(2010, 7, 16));
         secondFilm.setDuration(148);
+
         Film first = controller.create(firstFilm);
         Film second = controller.create(secondFilm);
 
@@ -68,42 +77,36 @@ class FilmControllerTest {
         controller.create(validFilm);
         controller.create(validFilm);
         List<Film> films = controller.findAll();
-
         assertEquals(2, films.size());
     }
 
     @Test
     void shouldRejectInvalidName() {
         validFilm.setName("");
-
         assertThrows(ValidationException.class, () -> controller.create(validFilm));
     }
 
     @Test
     void shouldRejectMoreThan200CharsDescription() {
         validFilm.setDescription("a".repeat(201));
-
         assertThrows(ValidationException.class, () -> controller.create(validFilm));
     }
 
     @Test
     void shouldRejectReleaseDateBefore1895() {
         validFilm.setReleaseDate(LocalDate.of(1895, 12, 27));
-
         assertThrows(ValidationException.class, () -> controller.create(validFilm));
     }
 
     @Test
     void shouldRejectNonPositiveDuration() {
         validFilm.setDuration(0);
-
         assertThrows(ValidationException.class, () -> controller.create(validFilm));
     }
 
     @Test
     void shouldNotSaveInvalidFilm() {
         validFilm.setName("");
-
         assertThrows(ValidationException.class, () -> controller.create(validFilm));
         assertTrue(controller.findAll().isEmpty());
     }
@@ -113,7 +116,6 @@ class FilmControllerTest {
         Film saved = controller.create(validFilm);
         saved.setName("Обновлённое имя");
         Film updated = controller.update(saved);
-
         assertEquals("Обновлённое имя", updated.getName());
         assertEquals(1, controller.findAll().size());
     }
@@ -121,14 +123,12 @@ class FilmControllerTest {
     @Test
     void shouldRejectUpdateForUnknownFilm() {
         validFilm.setId(10L);
-
         assertThrows(NotFoundException.class, () -> controller.update(validFilm));
     }
 
     @Test
     void shouldRejectUpdateWithoutId() {
         validFilm.setId(null);
-
         assertThrows(NotFoundException.class, () -> controller.update(validFilm));
     }
 
@@ -136,14 +136,12 @@ class FilmControllerTest {
     void shouldRejectUpdateWithInvalidData() {
         Film saved = controller.create(validFilm);
         saved.setName("");
-
         assertThrows(ValidationException.class, () -> controller.update(saved));
     }
 
     @Test
     void shouldReturnFilmById() {
         Film saved = controller.create(validFilm);
-
         assertEquals(saved, controller.getById(saved.getId()));
     }
 
@@ -158,7 +156,6 @@ class FilmControllerTest {
         u.setLogin(login);
         u.setName(login);
         u.setBirthday(LocalDate.of(1990, 1, 1));
-
         return userStorage.add(u);
     }
 
@@ -167,7 +164,6 @@ class FilmControllerTest {
         Film film = controller.create(validFilm);
         User user = makeUser("u1");
         controller.addLike(film.getId(), user.getId());
-
         assertEquals(1, controller.getById(film.getId()).getLikes().size());
         assertTrue(controller.getById(film.getId()).getLikes().contains(user.getId()));
     }
@@ -178,21 +174,18 @@ class FilmControllerTest {
         User user = makeUser("u1");
         controller.addLike(film.getId(), user.getId());
         controller.addLike(film.getId(), user.getId());
-
         assertEquals(1, controller.getById(film.getId()).getLikes().size());
     }
 
     @Test
     void shouldThrowAddLikeWhenUnknownFilm() {
         User user = makeUser("u1");
-
         assertThrows(NotFoundException.class, () -> controller.addLike(999L, user.getId()));
     }
 
     @Test
     void shouldThrowAddLikeWhenUnknownUser() {
         Film film = controller.create(validFilm);
-
         assertThrows(NotFoundException.class, () -> controller.addLike(film.getId(), 999L));
     }
 
@@ -209,7 +202,6 @@ class FilmControllerTest {
     void shouldNotThrowWhenRemoveAbsentLike() {
         Film film = controller.create(validFilm);
         User user = makeUser("u1");
-
         assertDoesNotThrow(() -> controller.removeLike(film.getId(), user.getId()));
     }
 
@@ -219,8 +211,8 @@ class FilmControllerTest {
         User u2 = makeUser("u2");
 
         Film a = controller.create(validFilm);
-        Film b = new Film();
 
+        Film b = new Film();
         b.setName("Начало");
         b.setDescription("Про сны");
         b.setReleaseDate(LocalDate.of(2010, 7, 16));
@@ -239,7 +231,6 @@ class FilmControllerTest {
         controller.addLike(b.getId(), u1.getId());
 
         List<Film> popular = controller.getPopular(2);
-
         assertEquals(2, popular.size());
         assertEquals(a.getId(), popular.get(0).getId());
         assertEquals(b.getId(), popular.get(1).getId());

@@ -4,10 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -54,6 +51,36 @@ public class InMemoryFilmStorage implements FilmStorage {
         Film removed = films.remove(id);
         if (removed != null) {
             log.info("Удалены данные Film: id={}, name=\"{}\"", id, removed.getName());
+        }
+    }
+
+    @Override
+    public List<Film> findPopular(int limit) {
+        return films.values().stream()
+                .sorted((a, b) -> Integer.compare(b.getLikes().size(), a.getLikes().size()))
+                .limit(limit)
+                .toList();
+    }
+
+    @Override
+    public void addLike(Long filmId, Long userId) {
+        Film film = getById(filmId);
+        if (film.getLikes().add(userId)) {
+            log.info("User userId={} лайкнул Film filmId={}, name=\"{}\"",
+                    userId, filmId, film.getName());
+        } else {
+            log.info("User userId={} лайкнул ранее Film filmId={}", userId, filmId);
+        }
+    }
+
+    @Override
+    public void removeLike(Long filmId, Long userId) {
+        Film film = getById(filmId);
+        if (film.getLikes().remove(userId)) {
+            log.info("User userId={} удалил лайк у Film filmId={}, name=\"{}\"",
+                    userId, filmId, film.getName());
+        } else {
+            log.info("Film filmId={} не имеет лайка от User userId={}", filmId, userId);
         }
     }
 }

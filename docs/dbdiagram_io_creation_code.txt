@@ -1,0 +1,68 @@
+Table "mpa_ratings" {
+  "id" BIGINT [pk, increment]
+  "name" VARCHAR(50) [unique, not null]
+}
+
+Table "genres" {
+  "id" BIGINT [pk, increment]
+  "name" VARCHAR(50) [unique, not null]
+}
+
+Table "users" {
+  "id" BIGINT [pk, increment]
+  "email" VARCHAR(255) [unique, not null]
+  "login" VARCHAR(255) [unique, not null]
+  "name" VARCHAR(255)
+  "birthday" DATE
+}
+
+Table "films" {
+  "id" BIGINT [pk, increment]
+  "name" VARCHAR(255) [not null]
+  "description" VARCHAR(200)
+  "release_date" DATE [not null]
+  "duration" INT [not null]
+  "rating_id" BIGINT
+}
+
+Table "film_genres" {
+  "film_id" BIGINT [not null]
+  "genre_id" BIGINT [not null]
+
+  Indexes {
+    (film_id, genre_id) [pk]
+  }
+}
+
+Table "likes" {
+  "film_id" BIGINT [not null]
+  "user_id" BIGINT [not null]
+
+  Indexes {
+    (film_id, user_id) [pk]
+  }
+}
+
+Table "friendships" {
+  "user_id" BIGINT [not null]
+  "friend_id" BIGINT [not null]
+  "status" VARCHAR(20) [not null]
+
+  Indexes {
+    (user_id, friend_id) [pk]
+  }
+}
+
+Ref:"mpa_ratings"."id" ?<? "films"."rating_id"
+
+Ref:"films"."id" <? "film_genres"."film_id"
+
+Ref:"genres"."id" <? "film_genres"."genre_id"
+
+Ref:"films"."id" <? "likes"."film_id"
+
+Ref:"users"."id" <? "likes"."user_id"
+
+Ref:"users"."id" <? "friendships"."user_id"
+
+Ref:"users"."id" <? "friendships"."friend_id"

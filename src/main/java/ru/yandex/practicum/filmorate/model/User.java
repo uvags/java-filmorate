@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.HashSet;
 
+// Подумать по поводу статусов в api
 @Data
 public class User {
     private Long id;
